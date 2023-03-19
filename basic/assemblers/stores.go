@@ -12,21 +12,27 @@ import (
 // Example: sb x14, 0x010(x0)    or sb x14, @Data+1(x0)
 // Store contents of x14 to x0+0x10
 
-func Stores(json map[string]interface{}) (macCode string, err error) {
+func Stores(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
+	if VerboseEnabled {
+		fmt.Println("### BEGIN Store ###")
+	}
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
 	rxpr, _ := regexp.Compile(`([a-z]+)[ ]+([xa0-9]+),[ ]*([\w]+)[ ]*\(([xa0-9]+)\)`)
 
 	fields := rxpr.FindStringSubmatch(ass)
 	rs2 := fields[2] // src
-	// fmt.Println("Source register rs2: ", rs2)
-
+	if VerboseEnabled {
+		fmt.Println("Source register rs2: ", rs2)
+	}
 	imm := fields[3]
 	immAsWA := strings.Contains(imm, "WA:")
 
 	rs1 := fields[4] // base reg
-	// fmt.Println("Base register rs1: ", rs1)
-
+	if VerboseEnabled {
+		fmt.Println("Base register rs1: ", rs1)
+	}
 	immInt, err := utils.StringHexToInt(imm)
 	if err != nil {
 		return "", err
@@ -35,8 +41,9 @@ func Stores(json map[string]interface{}) (macCode string, err error) {
 		// Convert from word-addressing to byte-addressing
 		immInt *= 4
 	}
-	// fmt.Printf("Immediate: 0x%x\n", immInt)
-
+	if VerboseEnabled {
+		fmt.Printf("Immediate: 0x%x\n", immInt)
+	}
 	ti := utils.IntToBinaryString(immInt)
 	produced := utils.BinaryStringToArray(ti)
 
@@ -117,10 +124,13 @@ func Stores(json map[string]interface{}) (macCode string, err error) {
 
 	instr := utils.BinaryArrayToString(instruction, true)
 
-	// fmt.Println("    imm11:5   |  rs2 |  rs1 |  funct3 |  imm4:0 |  opcode")
-	// fmt.Printf("   %v      %v  %v   %v        %v   %v\n", instr[0:7], instr[7:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
-	// fmt.Println("Instruction Bin: ", instr)
-	// fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+	if VerboseEnabled {
+		fmt.Println("    imm11:5   |  rs2 |  rs1 |  funct3 |  imm4:0 |  opcode")
+		fmt.Printf("   %v      %v  %v   %v        %v   %v\n", instr[0:7], instr[7:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
+		fmt.Println("Instruction Bin: ", instr)
+		fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("### END Store ###")
+	}
 
 	return utils.BinaryStringToHexString(instr, false), nil
 }

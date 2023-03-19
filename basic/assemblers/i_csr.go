@@ -15,7 +15,11 @@ import (
 // or       csrrwi x3, mie, 0x05
 // or       csrrwi x3, 0x304, 0x05
 
-func ItypeCSR(json map[string]interface{}) (macCode string, err error) {
+func ItypeCSR(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
+	if VerboseEnabled {
+		fmt.Println("### BEGIN CSR ###")
+	}
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
 	rxpr, _ := regexp.Compile(`([csrwsi]+)[ ]+([xa0-9]+),[ ]*([\w]+),[ ]*([xa0-9]+)`)
@@ -23,14 +27,18 @@ func ItypeCSR(json map[string]interface{}) (macCode string, err error) {
 	fields := rxpr.FindStringSubmatch(ass)
 
 	instru := fields[1]
-	fmt.Println("### ", instru, " ###")
-
+	if VerboseEnabled {
+		fmt.Println("___ ", instru, " ___")
+	}
 	rd := fields[2]
-	// fmt.Println("Destination register: ", rd)
-
+	if VerboseEnabled {
+		fmt.Println("Destination register: ", rd)
+	}
 	// csr
 	csr := fields[3]
-	// fmt.Println("CSR register: ", csr)
+	if VerboseEnabled {
+		fmt.Println("CSR register: ", csr)
+	}
 	// Convert name to addr
 	switch csr {
 	case "mstatus":
@@ -50,11 +58,14 @@ func ItypeCSR(json map[string]interface{}) (macCode string, err error) {
 	case "mip":
 		csr = "0x344"
 	}
-	// fmt.Println("CSR addr: ", csr)
-
+	if VerboseEnabled {
+		fmt.Println("CSR addr: ", csr)
+	}
 	// rs1 or immediate
 	rs1Imm := fields[4]
-	// fmt.Println("Rs1 or Immediate: ", rs1Imm)
+	if VerboseEnabled {
+		fmt.Println("Rs1 or Immediate: ", rs1Imm)
+	}
 
 	instruction := make([]byte, 32)
 
@@ -153,13 +164,16 @@ func ItypeCSR(json map[string]interface{}) (macCode string, err error) {
 
 	instr := utils.BinaryArrayToString(instruction, true)
 
-	// 31             20 19    15 14      12 11      7 6         0
-	// |      csr       | rs1/imm |  funct3  |    rd   |  opcode  |
+	if VerboseEnabled {
+		// 31             20 19    15 14      12 11      7 6         0
+		// |      csr       | rs1/imm |  funct3  |    rd   |  opcode  |
 
-	// fmt.Println("|      csr       | rs1/imm | funct3  |    rd   |  opcode  |")
-	// fmt.Printf("    %v    %v      %v      %v    %v\n", instr[0:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
-	// fmt.Println("Instruction Bin: ", instr)
-	// fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("|      csr       | rs1/imm | funct3  |    rd   |  opcode  |")
+		fmt.Printf("    %v    %v      %v      %v    %v\n", instr[0:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
+		fmt.Println("Instruction Bin: ", instr)
+		fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("### END CSR ###")
+	}
 
 	return utils.BinaryStringToHexString(instr, false), nil
 }

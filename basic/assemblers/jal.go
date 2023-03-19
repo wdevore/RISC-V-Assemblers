@@ -18,21 +18,27 @@ func GetJalFields(ass string) []string {
 	return rxpr.FindStringSubmatch(ass)
 }
 
-func Jal(json map[string]interface{}) (macCode string, err error) {
-	fmt.Println("### jal ###")
+func Jal(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
+	if VerboseEnabled {
+		fmt.Println("### BEGIN jal ###")
+	}
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
 	fields := GetJalFields(ass)
 
 	rd := fields[2]
-	// fmt.Println("Destination register: ", rd)
-
+	if VerboseEnabled {
+		fmt.Println("Destination register: ", rd)
+	}
 	label := fields[3]
-	// fmt.Println("Offset label: ", label)
-
+	if VerboseEnabled {
+		fmt.Println("Offset label: ", label)
+	}
 	pc := fmt.Sprintf("%s", json["PC"])
-	// fmt.Println("PC: ", pc)
-
+	if VerboseEnabled {
+		fmt.Println("PC: ", pc)
+	}
 	pcInt, err := utils.StringHexToInt(pc)
 	if err != nil {
 		return "", err
@@ -44,8 +50,9 @@ func Jal(json map[string]interface{}) (macCode string, err error) {
 	if err != nil {
 		return "", err
 	}
-	// fmt.Println("Target offset: ", target)
-
+	if VerboseEnabled {
+		fmt.Println("Target offset: ", target)
+	}
 	target = utils.WordAddrToByteAddrString(target)
 	targetInt, err := utils.StringHexToInt(target)
 	if err != nil {
@@ -120,12 +127,14 @@ func Jal(json map[string]interface{}) (macCode string, err error) {
 	instruction[0] = 1
 
 	instr := utils.BinaryArrayToString(instruction, true)
-	// fmt.Println("Instruction Bin: ", instr)
+	if VerboseEnabled {
+		fmt.Println("Instruction Bin: ", instr)
 
-	// fmt.Println("i20 ----- i10:1 ---- i11 ---i19:12 ------- rd --- opcode")
-	// fmt.Printf(" %v     %v     %v     %v     %v   %v\n", instr[0:1], instr[1:11], instr[11:12], instr[12:20], instr[20:25], instr[25:32])
-	// fmt.Println("Instruction Bin: ", instr)
-	// fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
-
+		fmt.Println("i20 ----- i10:1 ---- i11 ---i19:12 ------- rd --- opcode")
+		fmt.Printf(" %v     %v     %v     %v     %v   %v\n", instr[0:1], instr[1:11], instr[11:12], instr[12:20], instr[20:25], instr[25:32])
+		fmt.Println("Instruction Bin: ", instr)
+		fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("### END jal ###")
+	}
 	return utils.BinaryStringToHexString(instr, false), nil
 }

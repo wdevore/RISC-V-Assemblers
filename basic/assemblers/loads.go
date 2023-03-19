@@ -20,22 +20,28 @@ func GetLoadsFields(ass string) []string {
 }
 
 // Example: lw x19, 0x0A(x0)
-func Loads(json map[string]interface{}) (macCode string, err error) {
+func Loads(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
+	if VerboseEnabled {
+		fmt.Println("### BEGIN Load ###")
+	}
 
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
 	fields := GetLoadsFields(ass)
 
 	rd := fields[2]
-	// fmt.Println("Destination register: ", rd)
-
+	if VerboseEnabled {
+		fmt.Println("Destination register: ", rd)
+	}
 	imm := fields[3]
 	immAsWA := strings.Contains(imm, "WA:")
 
 	// Can be either, examples: 0x0(x0) or @Ref+1(x0)
 	rs1 := fields[4]
-	// fmt.Println("Rs1 register: ", rs1)
-
+	if VerboseEnabled {
+		fmt.Println("Rs1 register: ", rs1)
+	}
 	immInt, err := utils.StringHexToInt(imm)
 	if err != nil {
 		return "", err
@@ -44,8 +50,9 @@ func Loads(json map[string]interface{}) (macCode string, err error) {
 		// Convert from word-addressing to byte-addressing
 		immInt *= 4
 	}
-	// fmt.Printf("Immediate: 0x%x\n", immInt)
-
+	if VerboseEnabled {
+		fmt.Printf("Immediate: 0x%x\n", immInt)
+	}
 	ti := utils.IntToBinaryString(immInt)
 	produced := utils.BinaryStringToArray(ti)
 
@@ -84,7 +91,9 @@ func Loads(json map[string]interface{}) (macCode string, err error) {
 	instruction[15] = rs1Arr[31]
 
 	funct3 := fields[1]
-	fmt.Println("### Load: ", funct3, " ###")
+	if VerboseEnabled {
+		fmt.Println("___ Load: ", funct3, " ___")
+	}
 
 	switch funct3 {
 	case "lb":
@@ -134,10 +143,13 @@ func Loads(json map[string]interface{}) (macCode string, err error) {
 
 	instr := utils.BinaryArrayToString(instruction, true)
 
-	// fmt.Println("   imm11:0       |  rs1 | funct3 | rd  |  opcode")
-	// fmt.Printf("%v      %v    %v    %v   %v\n", instr[0:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
-	// fmt.Println("Instruction Bin: ", instr)
-	// fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+	if VerboseEnabled {
+		fmt.Println("   imm11:0       |  rs1 | funct3 | rd  |  opcode")
+		fmt.Printf("%v      %v    %v    %v   %v\n", instr[0:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
+		fmt.Println("Instruction Bin: ", instr)
+		fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("### END Load ###")
+	}
 
 	return utils.BinaryStringToHexString(instr, false), nil
 }

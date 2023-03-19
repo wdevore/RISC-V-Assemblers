@@ -2,32 +2,32 @@ package assemblers
 
 import "fmt"
 
-func Dispatch(instruction string, context map[string]interface{}) (machineCode string, err error) {
+func Dispatch(parms map[string]interface{}, instruction string, context map[string]interface{}) (machineCode string, err error) {
 	switch instruction {
 	case "jal":
-		machineCode, err = Jal(context)
+		machineCode, err = Jal(parms, context)
 	case "jalr":
-		machineCode, err = Jalr(context)
+		machineCode, err = Jalr(parms, context)
 	case "lui":
-		machineCode, err = Lui(context)
+		machineCode, err = Lui(parms, context)
 	case "auipc":
-		machineCode, err = Auipc(context)
+		machineCode, err = Auipc(parms, context)
 	case "ebreak":
-		machineCode, err = Ebreak()
+		machineCode, err = Ebreak(parms, context)
 	case "lb", "lh", "lw", "lbu", "lhu":
-		machineCode, err = Loads(context)
+		machineCode, err = Loads(parms, context)
 	case "sb", "sh", "sw":
-		machineCode, err = Stores(context)
+		machineCode, err = Stores(parms, context)
 	case "add", "sub", "xor", "or", "and", "sll", "srl", "sra", "slt", "sltu":
-		machineCode, err = RtypeAlu(context)
+		machineCode, err = RtypeAlu(parms, context)
 	case "addi", "xori", "ori", "andi", "slli", "srli", "srai", "slti", "sltiu":
-		machineCode, err = ItypeAlu(context)
+		machineCode, err = ItypeAlu(parms, context)
 	case "beq", "bne", "blt", "bge", "bltu", "bgeu":
-		machineCode, err = BtypeBranch(context)
+		machineCode, err = BtypeBranch(parms, context)
 	case "csrrw", "csrrs", "csrrc", "csrrwi", "csrrsi", "csrrci":
-		machineCode, err = ItypeCSR(context)
+		machineCode, err = ItypeCSR(parms, context)
 	case "mret":
-		machineCode, err = MRet(context)
+		machineCode, err = MRet(parms, context)
 	}
 
 	if err != nil {

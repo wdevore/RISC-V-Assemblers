@@ -10,7 +10,11 @@ import (
 
 //          addi rd, rs1, imm
 // Example: addi x3, x1, x2
-func ItypeAlu(json map[string]interface{}) (macCode string, err error) {
+func ItypeAlu(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
+	if VerboseEnabled {
+		fmt.Println("### BEGIN Itype ###")
+	}
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
 	rxpr, _ := regexp.Compile(`([a-z]+)[ ]+([xa0-9]+),[ ]*([xa0-9]+),[ ]*([\w-]+)`)
@@ -20,15 +24,18 @@ func ItypeAlu(json map[string]interface{}) (macCode string, err error) {
 	instru := fields[1]
 
 	rd := fields[2]
-	// fmt.Println("Destination register: ", rd)
-
+	if VerboseEnabled {
+		fmt.Println("Destination register: ", rd)
+	}
 	rs1 := fields[3]
-	// fmt.Println("Rs1 register: ", rs1)
-
+	if VerboseEnabled {
+		fmt.Println("Rs1 register: ", rs1)
+	}
 	imm := fields[4]
 	immAsWA := strings.Contains(imm, "WA:")
-	fmt.Println("Immediate: ", imm)
-
+	if VerboseEnabled {
+		fmt.Println("Immediate: ", imm)
+	}
 	immInt, err := utils.StringHexToInt(imm)
 	if err != nil {
 		return "", err
@@ -37,12 +44,14 @@ func ItypeAlu(json map[string]interface{}) (macCode string, err error) {
 		// Convert from word-addressing to byte-addressing
 		immInt *= 4
 	}
-	fmt.Println("immInt: ", immInt)
-
+	if VerboseEnabled {
+		fmt.Println("immInt: ", immInt)
+	}
 	ti := utils.IntToBinaryString(immInt)
 	produced := utils.BinaryStringToArray(ti)
-	// fmt.Println("produced: ", produced)
-
+	if VerboseEnabled {
+		fmt.Println("produced: ", produced)
+	}
 	instruction := make([]byte, 32)
 
 	// The LSB is at [31] (i.e. reversed)
@@ -82,8 +91,9 @@ func ItypeAlu(json map[string]interface{}) (macCode string, err error) {
 	instruction[16] = rs1Arr[30]
 	instruction[15] = rs1Arr[31]
 
-	fmt.Println("### ", instru, " ###")
-
+	if VerboseEnabled {
+		fmt.Println("___ ", instru, " ___")
+	}
 	// func3
 	switch instru {
 	case "addi":
@@ -149,10 +159,13 @@ func ItypeAlu(json map[string]interface{}) (macCode string, err error) {
 
 	instr := utils.BinaryArrayToString(instruction, true)
 
-	// fmt.Println("   imm11:0     |  rs1 | funct3 |   rd  |  opcode")
-	// fmt.Printf("%v     %v    %v    %v    %v\n", instr[0:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
-	// fmt.Println("Instruction Bin: ", instr)
-	// fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+	if VerboseEnabled {
+		fmt.Println("   imm11:0     |  rs1 | funct3 |   rd  |  opcode")
+		fmt.Printf("%v     %v    %v    %v    %v\n", instr[0:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
+		fmt.Println("Instruction Bin: ", instr)
+		fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("### END Itype ###")
+	}
 
 	return utils.BinaryStringToHexString(instr, false), nil
 }

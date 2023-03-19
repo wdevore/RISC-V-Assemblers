@@ -8,18 +8,26 @@ import (
 )
 
 // Example: auipc x10, 0
-func Auipc(json map[string]interface{}) (macCode string, err error) {
-	fmt.Println("### auipc ###")
+func Auipc(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
+	if VerboseEnabled {
+		fmt.Println("### BEGIN auipc ###")
+	}
+
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
 	rxpr, _ := regexp.Compile(`([a-z]+) ([xa0-9]+),[ ]*([\w]+)`)
 
 	fields := rxpr.FindStringSubmatch(ass)
 	rd := fields[2]
-	// fmt.Println("Destination register: ", rd)
+	if VerboseEnabled {
+		fmt.Println("Destination register: ", rd)
+	}
 
 	imm := fields[3]
-	// fmt.Println("Immediate: ", imm)
+	if VerboseEnabled {
+		fmt.Println("Immediate: ", imm)
+	}
 
 	immInt, err := utils.StringHexToInt(imm)
 	if err != nil {
@@ -84,10 +92,13 @@ func Auipc(json map[string]interface{}) (macCode string, err error) {
 
 	instr := utils.BinaryArrayToString(instruction, true)
 
-	// fmt.Println("------ imm ----------------------    rd   --- opcode")
-	// fmt.Printf("    %v           %v      %v\n", instr[0:20], instr[20:25], instr[25:32])
-	// fmt.Println("Instruction Bin: ", instr)
-	// fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+	if VerboseEnabled {
+		fmt.Println("------ imm ----------------------    rd   --- opcode")
+		fmt.Printf("    %v           %v      %v\n", instr[0:20], instr[20:25], instr[25:32])
+		fmt.Println("Instruction Bin: ", instr)
+		fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("### END auipc ###")
+	}
 
 	return utils.BinaryStringToHexString(instr, false), nil
 }

@@ -1,0 +1,10 @@
+{
+    "InFile": "code.s",
+    "InPath": "source/",
+    "OutFile": "code.out",
+    "OutHexFile": "code.hex",
+    "OutPath": "./",
+    "CopyOutPath": "/media/iposthuman/Nihongo/Hardware/MachDyne_FPGAs_SBCs/Schoko/projects/femto/simulation/binaries/",
+    "CopyEnabled": "No",
+    "VerboseEnabled": "No"
+}

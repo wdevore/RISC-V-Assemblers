@@ -20,26 +20,35 @@ func GetBranchFields(ass string) []string {
 
 //          beq rs1, rs2, imm
 // Example: beq  x1,  x2, @offset
-func BtypeBranch(json map[string]interface{}) (macCode string, err error) {
+func BtypeBranch(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
+	if VerboseEnabled {
+		fmt.Println("### BEGIN Btype ###")
+	}
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
 	fields := GetBranchFields(ass)
 
 	instru := fields[1]
-	fmt.Println("### ", instru, " ###")
-
+	if VerboseEnabled {
+		fmt.Println("___ ", instru, " ___")
+	}
 	rs1 := fields[2]
-	// fmt.Println("Rs1 register: ", rs1)
-
+	if VerboseEnabled {
+		fmt.Println("Rs1 register: ", rs1)
+	}
 	rs2 := fields[3]
-	// fmt.Println("Rs2 register: ", rs2)
-
+	if VerboseEnabled {
+		fmt.Println("Rs2 register: ", rs2)
+	}
 	label := fields[4]
-	// fmt.Println("Offset label: ", label)
-
+	if VerboseEnabled {
+		fmt.Println("Offset label: ", label)
+	}
 	pc := fmt.Sprintf("%s", json["PC"])
-	// fmt.Println("PC: ", pc)
-
+	if VerboseEnabled {
+		fmt.Println("PC: ", pc)
+	}
 	pcInt, err := utils.StringHexToInt(pc)
 	if err != nil {
 		return "", err
@@ -51,8 +60,9 @@ func BtypeBranch(json map[string]interface{}) (macCode string, err error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("Target offset: ", target)
-
+	if VerboseEnabled {
+		fmt.Println("Target offset: ", target)
+	}
 	// The target needs to be converted to byte-address form
 	target = utils.WordAddrToByteAddrString(target)
 	targetInt, err := utils.StringHexToInt(target)
@@ -164,10 +174,12 @@ func BtypeBranch(json map[string]interface{}) (macCode string, err error) {
 
 	instr := utils.BinaryArrayToString(instruction, true)
 
-	// fmt.Println("  imm 12|10:5 | rs2  |  rs1  | funct3 | imm 4:1|11 | opcode")
-	// fmt.Printf("   %v     %v    %v   %v       %v      %v\n", instr[0:7], instr[7:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
-	// fmt.Println("Instruction Bin: ", instr)
-	// fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
-
+	if VerboseEnabled {
+		fmt.Println("  imm 12|10:5 | rs2  |  rs1  | funct3 | imm 4:1|11 | opcode")
+		fmt.Printf("   %v     %v    %v   %v       %v      %v\n", instr[0:7], instr[7:12], instr[12:17], instr[17:20], instr[20:25], instr[25:32])
+		fmt.Println("Instruction Bin: ", instr)
+		fmt.Printf("Nibbles: %v %v %v %v %v %v %v %v\n", instr[0:4], instr[4:8], instr[8:12], instr[12:16], instr[16:20], instr[20:24], instr[24:28], instr[28:32])
+		fmt.Println("### END Btype ###")
+	}
 	return utils.BinaryStringToHexString(instr, false), nil
 }

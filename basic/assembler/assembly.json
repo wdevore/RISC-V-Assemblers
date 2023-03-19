@@ -6,5 +6,6 @@
     "OutFile": "/media/RAMDisk/code.out",
     "inputPath": "/media/iposthuman/Nihongo/Hardware/RangerRisc-RISC-V/assemblies/",
     "inputFile": "interrupt_counter_18mhz.asm",
-    "entryAddr": "0x0"
+    "entryAddr": "0x0",
+    "CopyEnabled": "Yes"
 }
