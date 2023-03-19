@@ -30,12 +30,12 @@ type section struct {
 func main() {
 	assemblyPro := os.Args[1:]
 
-	fileName := "basic.json"
+	fileName := "" //"basic.json"
 
 	if len(assemblyPro) > 0 {
 		fileName = assemblyPro[0]
 	} else {
-		//log.Fatalln("Name of an assembly.json filename parameter required")
+		log.Fatalln("Name of an assembly.json filename parameter required")
 	}
 
 	// Open our jsonFile

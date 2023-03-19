@@ -1,8 +1,8 @@
 {
-    "InFile": "code.s",
+    "InFile": "andi.s",
     "InPath": "source/",
-    "OutFile": "code.out",
-    "OutHexFile": "code.hex",
+    "OutFile": "andi.out",
+    "OutHexFile": "andi.hex",
     "OutPath": "./",
     "CopyOutPath": "/media/iposthuman/Nihongo/Hardware/MachDyne_FPGAs_SBCs/Schoko/projects/femto/simulation/binaries/",
     "CopyEnabled": "No",
