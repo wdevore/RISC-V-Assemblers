@@ -63,10 +63,11 @@ func main() {
 	if params["CopyEnabled"] == "Yes" {
 		fmt.Println("  Copy to:", params["CopyOutPath"])
 	}
-	fmt.Println("  Input file:", params["InFile"])
 	fmt.Println("  Input path:", params["InPath"])
-	fmt.Println("  Output file:", params["OutFile"])
+	fmt.Println("  Input file:", params["InFile"])
 	fmt.Println("  Output path:", params["OutPath"])
+	fmt.Println("  Output intermmediate:", params["OutFile"])
+	fmt.Println("  Output binary:", params["OutHexFile"])
 	fmt.Println("  -----------------------------------")
 
 	inputPath := params["InPath"]
@@ -130,8 +131,12 @@ func main() {
 		}
 	}
 
+	fmt.Println("Compilation complete. Writing files")
+
 	writeHexFile(params, sections)
 	writeOutFile(params, sections)
+
+	fmt.Println("Done.")
 }
 
 func findLabels(scanner *bufio.Scanner, labels map[string]string, labelExpr *regexp.Regexp) (labelNames []string) {
@@ -510,7 +515,7 @@ func getLabelRef(instruction string, ass string, labels map[string]string, loadR
 
 func writeHexFile(context map[string]interface{}, sections []section) {
 	file := fmt.Sprintf("%s%s", context["OutPath"], context["OutHexFile"])
-	fmt.Println("Writing binary: ", file)
+	// fmt.Println("Writing binary: ", file)
 
 	f, err := os.Create(file)
 
@@ -552,7 +557,7 @@ func writeHexFile(context map[string]interface{}, sections []section) {
 
 func writeOutFile(context map[string]interface{}, sections []section) {
 	file := fmt.Sprintf("%s%s", context["OutPath"], context["OutFile"])
-	fmt.Println("Writing intermediate: ", context["OutFile"])
+	// fmt.Println("Writing intermediate: ", context["OutFile"])
 
 	outfile := fmt.Sprint(file)
 	f, err := os.Create(outfile)
