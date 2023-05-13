@@ -50,7 +50,7 @@ func main() {
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
-	fmt.Println("Successfully Opened `%s`", fileName)
+	fmt.Printf("Successfully Opened `%s`\n", fileName)
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
@@ -88,7 +88,7 @@ func main() {
 
 	// Check if address on Label is in word-address form if it has a prefix "@"
 	// "$" means byte-address form
-	labelExpr, _ := regexp.Compile(`([0-9a-zA-Z]*): [@$]([0-9a-zA-Z]*)`)
+	labelExpr, _ := regexp.Compile(`([0-9a-zA-Z_]*): [@$]([0-9a-zA-Z]*)`)
 
 	// First pass to collect labels. All address values are converted to byte-address form
 	labelNames := findLabels(scanner, labels, labelExpr)
@@ -134,7 +134,9 @@ func main() {
 	fmt.Println("Compilation complete. Writing files")
 
 	writeHexFile(params, sections)
-	writeOutFile(params, sections)
+	if params["WriteOutFile"] == "Yes" {
+		writeOutFile(params, sections)
+	}
 
 	fmt.Println("Done.")
 }
@@ -341,7 +343,7 @@ func assemble(parms map[string]interface{}, mc_line *machine_line, expr *regexp.
 		}
 
 		// Some instructions require fetching a label, for example, "jal"
-		label, value, _ := getLabelRef(instruction, mc_line.line, labels, loadRefExpr)
+		label, value, _ := assemblers.GetLabelRef(instruction, mc_line.line, labels)
 
 		// All address fields need to be converted to Byte-address form
 		// for the Context--depending on the instruction.
@@ -356,9 +358,12 @@ func assemble(parms map[string]interface{}, mc_line *machine_line, expr *regexp.
 		// 	fmt.Println("debug")
 		// }
 
-		context := createContext(mc_line.line, pcByteAddr, label, value)
+		context, err := createContext(mc_line.line, pcByteAddr, label, value)
+		if err != nil {
+			return "", err
+		}
 
-		macCode, err = assemblers.Dispatch(parms, instruction, context)
+		macCode, err = assemblers.Dispatch(parms, instruction, context, labels)
 		mc_line.code = macCode
 
 		if err != nil {
@@ -369,17 +374,21 @@ func assemble(parms map[string]interface{}, mc_line *machine_line, expr *regexp.
 	return macCode, nil
 }
 
-func createContext(ass string, pc string, label string, value string) (context map[string]interface{}) {
+func createContext(ass string, pc string, label string, value string) (context map[string]interface{}, err error) {
 	// Create a context to pass to the assemblers
+	assem := strings.ReplaceAll(ass, "\"", "'")
 	ctx := "{"
-	ctx += "\"Assembly\":\"" + ass + "\","
+	ctx += "\"Assembly\":\"" + assem + "\","
 	ctx += "\"PC\":\"" + pc + "\","
 	ctx += "\"Labels\": [{\"" + label + "\":\"" + value + "\"}]"
 	ctx += "}"
 
-	json.Unmarshal([]byte(ctx), &context)
+	err = json.Unmarshal([]byte(ctx), &context)
+	if err != nil {
+		return nil, err
+	}
 
-	return context
+	return context, nil
 }
 
 func rewrite(instruction string, ass string, labels map[string]string, loadRefExpr *regexp.Regexp) (newInstr string, err error) {
@@ -502,16 +511,16 @@ func resolveCalc(instruction string, ass string, labels map[string]string) (valu
 	return value, nil
 }
 
-func getLabelRef(instruction string, ass string, labels map[string]string, loadRefExpr *regexp.Regexp) (label string, value string, err error) {
-	label, err = assemblers.GetLabel(instruction, ass)
-	if err != nil {
-		return "", "", err
-	}
+// func getLabelRef(instruction string, ass string, labels map[string]string, loadRefExpr *regexp.Regexp) (label string, value string, err error) {
+// 	label, err = assemblers.GetLabel(instruction, ass)
+// 	if err != nil {
+// 		return "", "", err
+// 	}
 
-	value = labels[label]
+// 	value = labels[label]
 
-	return label, value, nil
-}
+// 	return label, value, nil
+// }
 
 func writeHexFile(context map[string]interface{}, sections []section) {
 	file := fmt.Sprintf("%s%s", context["OutPath"], context["OutHexFile"])

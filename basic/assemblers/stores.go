@@ -22,6 +22,11 @@ func Stores(parms map[string]interface{}, json map[string]interface{}) (macCode 
 	rxpr, _ := regexp.Compile(`([a-z]+)[ ]+([xa0-9]+),[ ]*([\w]+)[ ]*\(([xa0-9]+)\)`)
 
 	fields := rxpr.FindStringSubmatch(ass)
+	if len(fields) == 0 {
+		// _, filename, line, _ := runtime.Caller(1)
+		return "", fmt.Errorf("stores.go: Assembly ill formed: %s", ass)
+	}
+
 	rs2 := fields[2] // src
 	if VerboseEnabled {
 		fmt.Println("Source register rs2: ", rs2)

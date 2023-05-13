@@ -1,8 +1,11 @@
 package assemblers
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-func Dispatch(parms map[string]interface{}, instruction string, context map[string]interface{}) (machineCode string, err error) {
+func Dispatch(parms map[string]interface{}, instruction string, context map[string]interface{}, labels map[string]string) (machineCode string, err error) {
 	switch instruction {
 	case "jal":
 		machineCode, err = Jal(parms, context)
@@ -21,7 +24,7 @@ func Dispatch(parms map[string]interface{}, instruction string, context map[stri
 	case "add", "sub", "xor", "or", "and", "sll", "srl", "sra", "slt", "sltu":
 		machineCode, err = RtypeAlu(parms, context)
 	case "addi", "xori", "ori", "andi", "slli", "srli", "srai", "slti", "sltiu":
-		machineCode, err = ItypeAlu(parms, context)
+		machineCode, err = ItypeAlu(parms, context, labels)
 	case "beq", "bne", "blt", "bge", "bltu", "bgeu":
 		machineCode, err = BtypeBranch(parms, context)
 	case "csrrw", "csrrs", "csrrc", "csrrwi", "csrrsi", "csrrci":
@@ -39,6 +42,8 @@ func Dispatch(parms map[string]interface{}, instruction string, context map[stri
 
 func GetFields(instruction string, ass string) []string {
 	switch instruction {
+	case "addi":
+		return GetAddiFields(ass)
 	case "jal":
 		return GetJalFields(ass)
 	case "jalr":
@@ -61,11 +66,24 @@ func GetLabel(instruction string, ass string) (label string, err error) {
 	switch instruction {
 	case "jal", "jalr":
 		return fields[3], nil
-	case "beq", "bne", "blt", "bge", "bltu", "bgeu":
+	case "addi", "beq", "bne", "blt", "bge", "bltu", "bgeu":
 		return fields[4], nil
 	case "lb", "lh", "lw", "lbu", "lhu":
 		return fields[3], nil
 	}
 
 	return "", fmt.Errorf("unknown instruction: " + instruction)
+}
+
+func GetLabelRef(instruction string, ass string, labels map[string]string) (label string, value string, err error) {
+	label, err = GetLabel(instruction, ass)
+	if err != nil {
+		return "", "", err
+	}
+
+	label = strings.ReplaceAll(label, "@", "")
+
+	value = labels[label]
+
+	return label, value, nil
 }

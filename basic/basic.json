@@ -1,10 +1,9 @@
 {
-    "InFile": "andi.s",
-    "InPath": "source/",
+    "InFile": "write_io.s",
+    "InPath": "/media/iposthuman/Nihongo/Hardware/MachDyne_FPGAs_SBCs/Schoko/projects/SoC/sources/",
+    "WriteOutFile": "Yes",
     "OutFile": "firmware.out",
     "OutHexFile": "firmware.hex",
-    "OutPath": "./",
-    "CopyOutPath": "/media/iposthuman/Nihongo/Hardware/MachDyne_FPGAs_SBCs/Schoko/projects/femto/simulation/binaries/",
-    "CopyEnabled": "No",
+    "OutPath": "/media/iposthuman/Nihongo/Hardware/MachDyne_FPGAs_SBCs/Schoko/projects/SoC/binaries/",
     "VerboseEnabled": "No"
 }

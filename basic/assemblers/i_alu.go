@@ -8,18 +8,31 @@ import (
 	"github.com/wdevore/RISC-V-Assemblers/utils"
 )
 
-//          addi rd, rs1, imm
+func GetAddiExpr() *regexp.Regexp {
+	rxpr, _ := regexp.Compile(`([a-z]+)[ ]+([xa0-9]+),[ ]*([xa0-9]+),[ ]*([@\w-]+)`)
+	return rxpr
+}
+
+func GetAddiFields(ass string) []string {
+	rxpr := GetAddiExpr()
+
+	return rxpr.FindStringSubmatch(ass)
+}
+
+//	addi rd, rs1, imm
+//
 // Example: addi x3, x1, x2
-func ItypeAlu(parms map[string]interface{}, json map[string]interface{}) (macCode string, err error) {
+// OR
+//
+//	addi x4, x0, @StringOK
+func ItypeAlu(parms map[string]interface{}, json map[string]interface{}, labels map[string]string) (macCode string, err error) {
 	VerboseEnabled := parms["VerboseEnabled"] == "Yes"
 	if VerboseEnabled {
 		fmt.Println("### BEGIN Itype ###")
 	}
 	ass := fmt.Sprintf("%s", json["Assembly"])
 
-	rxpr, _ := regexp.Compile(`([a-z]+)[ ]+([xa0-9]+),[ ]*([xa0-9]+),[ ]*([\w-]+)`)
-
-	fields := rxpr.FindStringSubmatch(ass)
+	fields := GetAddiFields(ass)
 
 	instru := fields[1]
 
@@ -31,27 +44,69 @@ func ItypeAlu(parms map[string]interface{}, json map[string]interface{}) (macCod
 	if VerboseEnabled {
 		fmt.Println("Rs1 register: ", rs1)
 	}
+
+	// Determine what form the Immediate is, for example, 42 or @xxx
+	// If "@" is present then it is an absolute address specified by
+	// a Label
 	imm := fields[4]
-	immAsWA := strings.Contains(imm, "WA:")
 	if VerboseEnabled {
 		fmt.Println("Immediate: ", imm)
 	}
-	immInt, err := utils.StringHexToInt(imm)
-	if err != nil {
-		return "", err
-	}
-	if immAsWA {
+
+	ti := ""
+	produced := []byte{}
+
+	immAsLabel := strings.Contains(imm, "@")
+	immAsWA := strings.Contains(imm, "WA:")
+
+	if immAsLabel {
+		// Convert label to BA address
+		// Remove "@" dereference
+
+		_, value, err := GetLabelRef("addi", ass, labels)
+		if err != nil {
+			return "", err
+		}
+
+		immInt, err := utils.StringHexToInt(value)
+		if err != nil {
+			return "", err
+		}
+
 		// Convert from word-addressing to byte-addressing
 		immInt *= 4
+
+		produced = utils.IntToBinaryArray(immInt)
+	} else if immAsWA {
+		immInt, err := utils.StringHexToInt(imm)
+		if err != nil {
+			return "", err
+		}
+
+		// Convert from word-addressing to byte-addressing
+		immInt *= 4
+		if VerboseEnabled {
+			fmt.Println("immInt: ", immInt)
+		}
+		ti = utils.IntToBinaryString(immInt)
+		produced = utils.BinaryStringToArray(ti)
+	} else {
+		immInt, err := utils.StringHexToInt(imm)
+		if err != nil {
+			return "", err
+		}
+
+		if VerboseEnabled {
+			fmt.Println("immInt: ", immInt)
+		}
+		ti = utils.IntToBinaryString(immInt)
+		produced = utils.BinaryStringToArray(ti)
 	}
-	if VerboseEnabled {
-		fmt.Println("immInt: ", immInt)
-	}
-	ti := utils.IntToBinaryString(immInt)
-	produced := utils.BinaryStringToArray(ti)
+
 	if VerboseEnabled {
 		fmt.Println("produced: ", produced)
 	}
+
 	instruction := make([]byte, 32)
 
 	// The LSB is at [31] (i.e. reversed)
